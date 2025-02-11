@@ -16,16 +16,16 @@ class TreeNode:
         if value == self.value:
             status = "found"
             return status
-        
+        print("Outside for Loop:",self.value)
+        # print(self.children)
         for child in self.children:
+            print("In for Loop:",child.value)
             status = child.search(value)
             if status:
                 return status
 
         return None
         
-
-
 root = TreeNode("A")
 
 childB = TreeNode("B")
@@ -47,7 +47,7 @@ childG = TreeNode("G")
 childC.add_child(childG)
 
 
-root.display(2)
+# root.display(2)
 
 search_node = "E"
 status = root.search(search_node)
