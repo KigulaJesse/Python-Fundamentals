@@ -3,11 +3,11 @@ from collections import namedtuple
 Token = namedtuple("Token", ['type', 'value'])
 
 TOKEN_TYPES = {
-    "OPEN TAG": "OPEN TAG",
-    "CLOSING TAG": "CLOSING TAG",
-    "SELF CLOSING TAG":"SELF CLOSING TAG",
-    "ATTRIBUTE NAME": "ATTRIBUTE NAME",
-    "ATTRIBUTE VALUE":"ATTRIBUTE VALUE",
+    "OPEN_TAG": "OPEN_TAG",
+    "CLOSING_TAG": "CLOSING_TAG",
+    "SELF_CLOSING_TAG":"SELF_CLOSING_TAG",
+    "ATTRIBUTE_NAME": "ATTRIBUTE_NAME",
+    "ATTRIBUTE_VALUE":"ATTRIBUTE_VALUE",
     "TEXT":"TEXT",
 }
 
@@ -31,9 +31,21 @@ class XMLTokenizer:
                 raise ValueError("Malformed XML: Missing closing '>'")
             
             tag_content = self.xml_text[self.position + 1:end].strip()
-            print("")
-            print(tag_content)
-            print("")
+            self.position = end + 1
+
+            if tag_content.endswith("/"):
+                print(tag_content[:-1])
+                return Token(TOKEN_TYPES['SELF_CLOSING_TAG'], tag_content[:-1].strip())
+            
+            if tag_content.startswith("/"):
+                print(tag_content[1:])
+                return Token(TOKEN_TYPES['CLOSING_TAG'],tag_content[1:].strip())
+            
+            # print("")
+            # print(self.xml_text[self.position])
+            # print(tag_content)
+            # print(self.xml_text[end])
+            # print("")
 
         self.position = self.position + 1
         return None
@@ -64,5 +76,18 @@ xml_sample = """
 tokenizer = XMLTokenizer(xml_sample)
 tokens = tokenizer.tokenize()
 
+print("Printing Tokens")
+print("=================")
 for token in tokens:
     print(token)
+
+
+
+
+xml_sample = """
+<root>
+    <name>John Doe</name>
+    <age>30</age>
+    <address city="New York" />
+</root>
+"""
