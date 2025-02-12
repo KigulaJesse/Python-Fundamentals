@@ -1,0 +1,5 @@
+<root>
+    <speech>Welcome to the Python speech engine.</speech>
+    <speech>Parsing XML and playing back text is easy.</speech>
+    <speech>This is an offline text-to-speech example.</speech>
+</root>

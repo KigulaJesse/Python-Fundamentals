@@ -1,12 +1,12 @@
-example_dict = {
-    'FName': "Jesse",
-    'LName': "Kigula",
-    "Age": 30,
-}
+import re
 
+# pattern = re.compile(r"<(/?)(\w+)([^>]*)>")
+pattern = re.compile(r"<(/?)(\w+)([^>]*)>")
 
-print(example_dict)
-print(example_dict.items())
+# Example HTML-like string
+text = "<div class='container'>Content</div>"
 
-for k,t in example_dict.items():
-    print(f"{k} : {t}")
+matches = pattern.findall(text)
+
+for match in matches:
+    print(match)

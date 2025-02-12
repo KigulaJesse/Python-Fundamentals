@@ -1,3 +1,4 @@
+import re
 
 class SSMLTag:
     def __init__(self, name, attributes=None, text=None):
@@ -44,6 +45,14 @@ def to_xml(node, level=0):
         xml += to_xml(child, level + 1)
     xml += f"{indent}<{node.name}/>\n"
     return xml
+
+def parse_xml(xml_string):
+    """Parses XML"""
+    tag_pattern = None
+    attribute_pattern = None
+    text_pattern = None
+
+    
 
 root = SSMLTag("speak")
 voice = SSMLTag("voice", {'name':'Joanna'})
