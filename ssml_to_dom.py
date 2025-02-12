@@ -31,16 +31,19 @@ class SSMLTag:
 #     </speak>
 # """
 
-# def to_xml(node, level=0):
-#     indent = "  " * level
-#     name = node.name
-#     attrs = "".join(f"{k}='{v}'" for k,v in node.attributes.items())
-#     attrs = f" {attrs}" if attrs else ""
-#     text = node.text
-
-
-
-
+def to_xml(node, level=0):
+    indent = "  " * level
+    attrs = "".join(f" {k}='{v}'" for k,v in node.attributes.items())
+    text = node.text if node.text else ""
+    
+    if not node.children:
+        return f"{indent}<{node.name}{attrs}>{text}</{node.name}> \n"
+    
+    xml = f"{indent}<{node.name}{attrs}>{text} \n"
+    for child in node.children:
+        xml += to_xml(child, level + 1)
+    xml += f"{indent}<{node.name}/>\n"
+    return xml
 
 root = SSMLTag("speak")
 voice = SSMLTag("voice", {'name':'Joanna'})
@@ -48,7 +51,7 @@ say_as = SSMLTag("say-as", {'interpret-as':'date', 'type':"new"}, '2024-02-12')
 voice.add_child(say_as)
 root.add_child(voice)
 
-print(say_as.__repr__)
+print(to_xml(root))
 
 
 
