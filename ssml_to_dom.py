@@ -1,93 +1,85 @@
-import re
-
-class SSMLNode:
-    def __init__(self, tag, attributes=None, text=None):
-        self.tag = tag  # e.g., "speak", "break", "voice"
+class TreeNode:
+    """A simple tree node representation for SSML elements."""
+    def __init__(self, tag=None, attributes=None, text=None):
+        self.tag = tag  # e.g., 'speak', 'voice', 'break'
         self.attributes = attributes if attributes else {}  # Store tag attributes
-        self.text = text  # Store inner text
-        self.children = []  # Child nodes
+        self.text = text.strip() if text else None  # Store text separately
+        self.children = []  # List of child nodes
 
     def add_child(self, child):
+        """Adds a child node to the current node."""
         self.children.append(child)
 
     def __repr__(self, level=0):
+        """Custom representation for visualization."""
         indent = "  " * level
-        result = f"{indent}<{self.tag} {self.attributes}>\n"
-        if self.text:
-            result += f"{indent}  {self.text}\n"
+        attr_str = f" {self.attributes}" if self.attributes else ""
+        text_str = f": {self.text}" if self.text else ""
+        repr_str = f"{indent}<{self.tag}{attr_str}>{text_str}\n"
         for child in self.children:
-            result += child.__repr__(level + 1)
-        result += f"{indent}</{self.tag}>\n"
-        return result
-
-import re
-
-class SSMLParser:
-    def __init__(self, ssml):
-        self.tokens = self.tokenize(ssml)
-        self.current_index = 0
-
-    def tokenize(self, ssml):
-        """Splits the SSML text into meaningful tokens."""
-        token_pattern = r"(<[^>]+>|[^<>]+)"
-        tokens = re.findall(token_pattern, ssml)
-        print("Tokens:", tokens)  # Debugging the tokens
-        return tokens
+            repr_str += child.__repr__(level + 1)
+        return repr_str
 
 
-    def parse(self):
-        """Parses tokens into a DOM-like tree structure."""
-        if not self.tokens:
-            return None
-        return self._parse_element()
+def parse_ssml(ssml):
+    """Manually parse SSML into a tree representation."""
+    ssml = ssml.strip()
+    index, length = 0, len(ssml)
+    root = TreeNode("root")  # Root node
+    stack = [root]
 
-    def _parse_element(self):
-        """Parses an individual SSML element and its children."""
-        token = self.tokens[self.current_index]
+    while index < length:
+        if ssml[index] == "<":
+            # Closing tag case
+            if ssml[index + 1] == "/":
+                end_index = ssml.find(">", index)
+                stack.pop()  # Close the current node
+                index = end_index + 1
+            else:
+                # Opening tag
+                end_index = ssml.find(">", index)
+                tag_content = ssml[index + 1:end_index]
+                
+                # Extract tag name and attributes
+                parts = tag_content.split()
+                tag_name = parts[0]
+                attributes = {}
 
-        if token.startswith("<") and not token.startswith("</"):
-            # Extract tag name
-            tag_name = re.match(r"<(\w+)", token).group(1)
-            attributes = self._parse_attributes(token)
+                # Extract attributes
+                for part in parts[1:]:
+                    if "=" in part:
+                        key, value = part.split("=", 1)
+                        attributes[key] = value.strip("\"'")
 
-            node = SSMLNode(tag=tag_name, attributes=attributes)
-            self.current_index += 1  # Move to next token
+                # Create a new node
+                node = TreeNode(tag_name, attributes)
+                stack[-1].add_child(node)  # Attach to the current parent
+                stack.append(node)  # Make it the current node
 
-            # Recursively process child elements until closing tag
-            while self.current_index < len(self.tokens):
-                next_token = self.tokens[self.current_index]
+                index = end_index + 1
+        else:
+            # Text Node Case
+            end_index = ssml.find("<", index)
+            text_content = ssml[index:end_index].strip()
+            if text_content:
+                text_node = TreeNode(tag="text", text=text_content)
+                stack[-1].add_child(text_node)  # Attach text to the current parent
+            index = end_index
 
-                if next_token.startswith(f"</{tag_name}>"):  # Closing tag found
-                    self.current_index += 1  # Move past closing tag
-                    return node
-                else:
-                    node.add_child(self._parse_element())  # Parse child
-
-        elif not token.startswith("<"):
-            # Plain text node: Here we make sure the text is properly assigned
-            node = SSMLNode(tag="text", text=token.strip())
-            self.current_index += 1
-            return node
-
-        return None
+    return root
 
 
-    def _parse_attributes(self, tag_string):
-        """Extracts attributes from a tag string."""
-        attributes = {}
-        matches = re.findall(r'(\w+)="([^"]+)"', tag_string)
-        for key, value in matches:
-            attributes[key] = value
-        return attributes
-
-ssml_text = '''
+# Example SSML Input
+ssml_data = """
 <speak>
-  <voice name="Matthew">Hello, how are you?</voice>
-  <break time="500ms"/>
-  <prosody pitch="+10%">I am excited!</prosody>
+    <voice name="Emma">
+        Hello there!
+        <break time="500ms"/>
+        <prosody rate="slow">This is a test.</prosody>
+    </voice>
 </speak>
-'''
+"""
 
-parser = SSMLParser(ssml_text)
-dom = parser.parse()
-print(dom)
+# Parse and print tree representation
+ssml_tree = parse_ssml(ssml_data)
+print(ssml_tree)
